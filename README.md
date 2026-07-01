@@ -32,20 +32,21 @@ This project implements a **shared-database, shared-schema multi-tenant architec
 ## 📁 Directory Structure
 
 ```text
-Multi-Tenant-Saas/
-├── saas_api/                     # Main backend directory
-│   ├── config/                   # Global project configuration, settings, celery, routing
-│   ├── core/                     # Shared core logic (tenants isolation middleware, base models, rate throttling)
-│   ├── tenants/                  # Tenant organizations, subscription plans, active subscriptions
-│   ├── accounts/                 # Custom user accounts, signup, roles (Admin/Member), and authentication
-│   ├── api/                      # Scoped projects models, views, and tenant-only endpoints
-│   ├── billing/                  # Stripe viewsets, billing invoices, payments, and background celery tasks
-│   ├── tests/                    # Backend testing suite using pytest
-│   ├── pytest.ini                # Pytest configurations (automatically sets Django settings)
-│   ├── manage.py                 # Django command-line tool
-│   ├── requirements.txt          # Python packages list
-│   └── docker-compose.yml        # Docker composition settings
-└── README.md                     # Documentation
+Multi-Tenant-Saas-API/ (Repository Root)
+├── accounts/                 # Custom user accounts, signup, roles (Admin/Member), and authentication
+├── api/                      # Scoped projects models, views, and tenant-only endpoints
+├── billing/                  # Stripe viewsets, billing invoices, payments, and background celery tasks
+├── config/                   # Global project configuration, settings, celery, routing
+├── core/                     # Shared core logic (tenants isolation middleware, base models, rate throttling)
+├── tenants/                  # Tenant organizations, subscription plans, active subscriptions
+├── tests/                    # Backend testing suite using pytest
+├── .dockerignore             # Excludes files/folders from Docker builds
+├── .gitignore                # Tells Git which files to ignore
+├── docker-compose.yml        # Docker composition settings
+├── manage.py                 # Django command-line tool
+├── pytest.ini                # Pytest configurations (automatically sets Django settings)
+├── README.md                 # Documentation
+└── requirements.txt          # Python packages list
 ```
 
 ---
