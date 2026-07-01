@@ -80,7 +80,7 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # https://docs.djangoproject.com/en/5.0/ref/settings/#databases
 
 import sys
-IS_TESTING = 'test' in sys.argv
+IS_TESTING = 'test' in sys.argv or any('pytest' in arg for arg in sys.argv)
 
 if IS_TESTING:
     DATABASES = {
