@@ -1,0 +1,422 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Multi-Tenant SaaS Workspace</title>
+    
+    <!-- Premium Typography and Icons -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+
+    <!-- Load Separated CSS Stylesheet -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+<body>
+
+    <!-- TOAST NOTIFICATION MOUNTING POINT -->
+    <div id="toast-container"></div>
+
+    <!-- 1. PUBLIC VISITOR LANDING SCREEN -->
+    <div id="landing-page">
+        <header class="landing-header">
+            <div class="brand">
+                <i data-lucide="layers" style="color: var(--accent-purple);"></i>
+                <span>SaaS<span style="color: var(--accent-cyan);">Isolation</span></span>
+            </div>
+            <div>
+                <button class="btn btn-secondary" onclick="showAuthPage('login')">Sign In</button>
+                <button class="btn btn-primary" onclick="showAuthPage('signup')">Get Started</button>
+            </div>
+        </header>
+
+        <section class="hero">
+            <h1>Enterprise Multi-Tenant SaaS Workspace</h1>
+            <p>Secure, thread-safe organizational isolation. Run dynamic rate limit controls, track subscription tiers, and deploy clean workspace projects in seconds.</p>
+            <div class="cta-group">
+                <button class="btn btn-primary" onclick="showAuthPage('signup')">
+                    Create Sandbox Organization
+                    <i data-lucide="arrow-right"></i>
+                </button>
+                <button class="btn btn-secondary" onclick="showAuthPage('login')">Access Workspace</button>
+            </div>
+        </section>
+
+        <section class="features-grid">
+            <div class="glass-card feature-card">
+                <div class="feature-icon"><i data-lucide="shield-check"></i></div>
+                <h3>Absolute Isolation</h3>
+                <p>Ensures tenant database rows remain separated via thread-local context variables and custom middleware.</p>
+            </div>
+            <div class="glass-card feature-card">
+                <div class="feature-icon"><i data-lucide="gauge"></i></div>
+                <h3>Dynamic Rate Limits</h3>
+                <p>Redis sliding-window throttles adapt request maximums instantly according to subscription tier rules.</p>
+            </div>
+            <div class="glass-card feature-card">
+                <div class="feature-icon"><i data-lucide="credit-card"></i></div>
+                <h3>Mock Billing Portal</h3>
+                <p>Verify checkout operations, collect simulated invoices, and upgrade structures on local databases.</p>
+            </div>
+        </section>
+
+        <section class="pricing-section">
+            <h2>Choose Your Growth Strategy</h2>
+            <p>Flexible plan options structured to empower developers and growing enterprises alike.</p>
+            
+            <div class="pricing-grid" id="landing-plans-grid">
+                <!-- Fallback static loaders if API hasn't loaded yet -->
+                <div class="glass-card price-card">
+                    <div class="price-header">
+                        <h3>Free Sandbox</h3>
+                        <div class="price-amount">$0<span>/mo</span></div>
+                    </div>
+                    <ul class="price-features">
+                        <li><i data-lucide="check"></i> 5 Active User Accounts</li>
+                        <li><i data-lucide="check"></i> Scoped Project Registries</li>
+                        <li><i data-lucide="check"></i> 100 reqs/min rate limits</li>
+                        <li class="disabled"><i data-lucide="x"></i> Premium Analytics Dashboard</li>
+                    </ul>
+                    <button class="btn btn-secondary" style="width: 100%;" onclick="showAuthPage('signup', 1)">Select Free</button>
+                </div>
+                <div class="glass-card price-card popular">
+                    <div class="price-header">
+                        <h3>Pro Enterprise</h3>
+                        <div class="price-amount">$49<span>/mo</span></div>
+                    </div>
+                    <ul class="price-features">
+                        <li><i data-lucide="check"></i> Unlocked Workspace Users</li>
+                        <li><i data-lucide="check"></i> Scoped Project Registries</li>
+                        <li><i data-lucide="check"></i> 1000 reqs/min rate limits</li>
+                        <li><i data-lucide="check"></i> Premium Analytics Dashboard</li>
+                    </ul>
+                    <button class="btn btn-primary" style="width: 100%;" onclick="showAuthPage('signup', 2)">Upgrade to Pro</button>
+                </div>
+            </div>
+        </section>
+    </div>
+
+    <!-- 2. LOGIN AND REGISTRATION WORKSPACE GATE -->
+    <div id="auth-page" class="glass-card">
+        <div class="brand auth-logo">
+            <i data-lucide="layers" style="color: var(--accent-purple);"></i>
+            <span>SaaS<span style="color: var(--accent-cyan);">Workspace</span></span>
+        </div>
+        
+        <h2 id="auth-title" class="auth-title">Log In to Workspace</h2>
+        <p id="auth-subtitle" class="auth-subtitle">Provide tenant credentials to enter workspace panel</p>
+
+        <form id="auth-form" onsubmit="handleAuthSubmit(event)">
+            <!-- Signup Specific Fields -->
+            <div id="signup-fields" style="display: none;">
+                <div class="form-group">
+                    <label for="tenant_name">Organization Name</label>
+                    <input type="text" id="tenant_name" class="form-control" placeholder="e.g. Acme Corp">
+                </div>
+                <div class="form-group">
+                    <label for="first_name">First Name</label>
+                    <input type="text" id="first_name" class="form-control" placeholder="Jane">
+                </div>
+                <div class="form-group">
+                    <label for="last_name">Last Name</label>
+                    <input type="text" id="last_name" class="form-control" placeholder="Doe">
+                </div>
+            </div>
+
+            <!-- Tenant Subdomain Field -->
+            <div class="form-group">
+                <label for="subdomain">Tenant Subdomain</label>
+                <div style="position: relative;">
+                    <input type="text" id="subdomain" class="form-control" placeholder="e.g. acme" required style="padding-right: 90px;">
+                    <span style="position: absolute; right: 14px; top: 12px; color: var(--text-muted); font-size: 13px; font-weight: 600;">.localhost</span>
+                </div>
+            </div>
+
+            <!-- Credentials -->
+            <div class="form-group">
+                <label for="email">Email Address</label>
+                <input type="email" id="email" class="form-control" placeholder="admin@acme.com" required>
+            </div>
+            <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" class="form-control" placeholder="••••••••" required>
+            </div>
+
+            <button type="submit" class="btn btn-primary" style="width: 100%; margin-top: 10px;" id="auth-btn">
+                Access Workspace Dashboard
+            </button>
+        </form>
+
+        <div class="auth-switcher" id="auth-switcher-container">
+            Need a new workspace? <a onclick="toggleAuthMode('signup')">Sign Up Here</a>
+        </div>
+    </div>
+
+    <!-- 3. COMPREHENSIVE LOGGED IN APP WORKSPACE -->
+    <div id="app-layout">
+        <!-- APP SIDEBAR CONTROLS -->
+        <aside id="sidebar">
+            <div>
+                <div class="sidebar-brand">
+                    <i data-lucide="layers" style="color: var(--accent-cyan);"></i>
+                    <span>SaaS<span class="gradient-text">Console</span></span>
+                </div>
+                <ul class="sidebar-menu">
+                    <li>
+                        <a class="menu-item active" id="menu-dashboard" onclick="switchTab('dashboard')">
+                            <i data-lucide="layout-dashboard"></i>
+                            <span>Dashboard</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="menu-item" id="menu-analytics" onclick="switchTab('analytics')">
+                            <i data-lucide="line-chart"></i>
+                            <span>Analytics</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="menu-item" id="menu-users" onclick="switchTab('users')">
+                            <i data-lucide="users"></i>
+                            <span>Team Members</span>
+                        </a>
+                    </li>
+                    <li>
+                        <a class="menu-item" id="menu-billing" onclick="switchTab('billing')">
+                            <i data-lucide="credit-card"></i>
+                            <span>Billing Portal</span>
+                        </a>
+                    </li>
+                </ul>
+            </div>
+
+            <div class="sidebar-footer">
+                <div class="user-badge">
+                    <div class="avatar" id="nav-user-avatar">A</div>
+                    <div class="user-info">
+                        <span class="user-email" id="nav-user-email">email@tenant.com</span>
+                        <span class="user-role" id="nav-user-role">Member</span>
+                    </div>
+                </div>
+                <button class="btn btn-danger" style="width: 100%; gap: 6px; padding: 8px 12px; font-size: 13px;" onclick="handleLogout()">
+                    <i data-lucide="log-out" style="width: 14px;"></i>
+                    Disconnect Session
+                </button>
+            </div>
+        </aside>
+
+        <!-- MAIN DYNAMIC CONTENT ROUTER -->
+        <main id="main-view">
+            <!-- PANEL: PROJECTS DASHBOARD -->
+            <div class="view-panel active" id="panel-dashboard">
+                <div class="view-header">
+                    <div>
+                        <h2>Workspace Resource Manager</h2>
+                        <p style="color: var(--text-muted); font-size: 14px; margin-top: 4px;">Organize and track tenant-specific projects securely</p>
+                    </div>
+                    <div class="workspace-tag">
+                        <i data-lucide="network"></i>
+                        <span id="active-workspace-label">acme.localhost</span>
+                    </div>
+                </div>
+
+                <!-- RATE LIMIT DEMO DRIVER -->
+                <div class="glass-card rate-limit-card">
+                    <div class="rate-limit-info">
+                        <h4><i data-lucide="zap" style="color: var(--accent-cyan); display: inline; vertical-align: middle; width: 18px; margin-right: 4px;"></i> Rate Limiter Stress Test</h4>
+                        <p>Our backend employs a Redis-backed sliding window filter. Spamming API queries demonstrates immediate 429 warnings once sandbox threshold allocations expire.</p>
+                    </div>
+                    <button class="btn btn-cyan" onclick="triggerRateLimitSpam()">
+                        Fire 15 API Requests
+                    </button>
+                </div>
+
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                    <h3>Project Registry</h3>
+                    <button class="btn btn-primary" style="padding: 8px 16px; font-size: 13px;" onclick="openCreateProjectModal()">
+                        <i data-lucide="plus" style="width: 16px;"></i>
+                        Register New Project
+                    </button>
+                </div>
+
+                <div class="projects-grid" id="dashboard-projects-grid">
+                    <!-- Project Cards populate dynamically here -->
+                </div>
+            </div>
+
+            <!-- PANEL: ANALYTICS -->
+            <div class="view-panel" id="panel-analytics">
+                <div class="view-header">
+                    <div>
+                        <h2>Performance Analytics</h2>
+                        <p style="color: var(--text-muted); font-size: 14px; margin-top: 4px;">Premium metrics aggregated from tenant queries</p>
+                    </div>
+                    <div class="workspace-tag">
+                        <i data-lucide="bar-chart-2"></i>
+                        <span class="active-subdomain-tag">acme.localhost</span>
+                    </div>
+                </div>
+
+                <!-- GATEKEEPER OVERLAY AND ACTUAL CONTENT CONTAINER -->
+                <div class="locked-overlay-container" id="analytics-content-container">
+                    <!-- Overwritten dynamically if user plan is free -->
+                    <div class="glass-card" style="padding: 30px; display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+                        <div class="glass-card stat-card" style="background: rgba(255, 255, 255, 0.02);">
+                            <div class="stat-label">Active Workspace Projects</div>
+                            <div class="stat-value" id="analytics-active-count">0</div>
+                            <div class="stat-sub">Scoping status: Isolated</div>
+                        </div>
+                        <div class="glass-card stat-card" style="background: rgba(255, 255, 255, 0.02);">
+                            <div class="stat-label">Stripe Webhook Health Status</div>
+                            <div class="stat-value" style="color: #4ade80;">Operational</div>
+                            <div class="stat-sub">Mock payments verified</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PANEL: TEAM MEMBERS -->
+            <div class="view-panel" id="panel-users">
+                <div class="view-header">
+                    <div>
+                        <h2>Team Registry</h2>
+                        <p style="color: var(--text-muted); font-size: 14px; margin-top: 4px;">Collaborate inside the isolated organization workspace</p>
+                    </div>
+                    <div class="workspace-tag">
+                        <i data-lucide="users"></i>
+                        <span class="active-subdomain-tag">acme.localhost</span>
+                    </div>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 30px; align-items: start;">
+                    <div class="glass-card" style="padding: 24px;">
+                        <h3 style="margin-bottom: 16px;">Active Members</h3>
+                        <div class="premium-table-container">
+                            <table class="premium-table">
+                                <thead>
+                                    <tr>
+                                        <th>Name</th>
+                                        <th>Email</th>
+                                        <th>Role Scope</th>
+                                        <th>Added Date</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="users-table-body">
+                                    <!-- User Rows dynamically populated -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <div class="glass-card" style="padding: 24px;" id="add-user-container">
+                        <h3 style="margin-bottom: 16px;">Invite Workspace Member</h3>
+                        <form id="invite-user-form" onsubmit="handleInviteUser(event)">
+                            <div class="form-group">
+                                <label for="invite_email">Email Address</label>
+                                <input type="email" id="invite_email" class="form-control" placeholder="colleague@acme.com" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="invite_first_name">First Name</label>
+                                <input type="text" id="invite_first_name" class="form-control" placeholder="Jane">
+                            </div>
+                            <div class="form-group">
+                                <label for="invite_last_name">Last Name</label>
+                                <input type="text" id="invite_last_name" class="form-control" placeholder="Smith">
+                            </div>
+                            <div class="form-group">
+                                <label for="invite_password">Password (Temporary)</label>
+                                <input type="password" id="invite_password" class="form-control" placeholder="Min 8 chars" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary" style="width: 100%;">
+                                Register Workspace User
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+
+            <!-- PANEL: BILLING & PAYMENT PORTAL -->
+            <div class="view-panel" id="panel-billing">
+                <div class="view-header">
+                    <div>
+                        <h2>Billing & Subscriptions</h2>
+                        <p style="color: var(--text-muted); font-size: 14px; margin-top: 4px;">Control plan tiers and inspect system transactions</p>
+                    </div>
+                    <div class="workspace-tag">
+                        <i data-lucide="credit-card"></i>
+                        <span class="active-subdomain-tag">acme.localhost</span>
+                    </div>
+                </div>
+
+                <div class="billing-stats">
+                    <div class="glass-card stat-card">
+                        <div class="stat-label">Active Subscription Tier</div>
+                        <div class="stat-value gradient-text" id="billing-current-plan">Free Plan</div>
+                        <div class="stat-sub" id="billing-current-status">Status: Active</div>
+                    </div>
+                    <div class="glass-card stat-card">
+                        <div class="stat-label">Billing Cycle</div>
+                        <div class="stat-value">Monthly</div>
+                        <div class="stat-sub">Stripe Sandbox mode active</div>
+                    </div>
+                </div>
+
+                <!-- PLAN TIERS SWITCHER -->
+                <div class="glass-card" style="padding: 24px; margin-bottom: 30px;" id="admin-tier-management-card">
+                    <h3 style="margin-bottom: 16px;">Available Workspace Packages</h3>
+                    <div style="display: flex; gap: 20px; flex-wrap: wrap;" id="billing-plans-container">
+                        <!-- Plans will load dynamically -->
+                    </div>
+                </div>
+
+                <!-- TRANSACTION LOGS -->
+                <div class="glass-card" style="padding: 24px;">
+                    <h3 style="margin-bottom: 16px;">Billing History</h3>
+                    <div class="premium-table-container">
+                        <table class="premium-table">
+                            <thead>
+                                <tr>
+                                    <th>Receipt Ref</th>
+                                    <th>Billing Date</th>
+                                    <th>Amount</th>
+                                    <th>Status</th>
+                                </tr>
+                            </thead>
+                            <tbody id="billing-history-body">
+                                <!-- Transaction log items populated dynamically -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- MODAL: REGISTER A NEW PROJECT -->
+    <div class="modal" id="modal-project">
+        <div class="glass-card modal-content">
+            <button class="modal-close" onclick="closeProjectModal()">&times;</button>
+            <h3 class="modal-title">Register New Workspace Project</h3>
+            <form id="project-form" onsubmit="handleProjectSubmit(event)">
+                <div class="form-group">
+                    <label for="project_name">Project Title</label>
+                    <input type="text" id="project_name" class="form-control" placeholder="e.g. Analytics Pipeline" required>
+                </div>
+                <div class="form-group">
+                    <label for="project_desc">Overview Description</label>
+                    <textarea id="project_desc" class="form-control" placeholder="Summarize project goal..." style="resize: vertical; min-height: 80px;" required></textarea>
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 12px; margin-top: 24px;">
+                    <button type="button" class="btn btn-secondary" onclick="closeProjectModal()">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create Project</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Load Separated JavaScript Logic -->
+    <script src="{% static 'js/app.js' %}"></script>
+</body>
+</html>
